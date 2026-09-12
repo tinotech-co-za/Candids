@@ -1,7 +1,7 @@
 # Managed Candids payment and delivery
 
 Use the dedicated devbox backend and fixed public app
-`https://candids-pilot.tinomuzambi.com`. The backend enforces five active events;
+`https://candids.tinotech.co.za`. The backend enforces five active events;
 each expires within 30 days and allows 50 guests, 100 photos and 200 MB total.
 Agree scope, event expiry and the normal seven-day protected backup rotation and the failure/manual-removal
 process in writing. A failed cleanup can delay removal; do not promise an
@@ -43,7 +43,7 @@ The JSON has these fields (replace every placeholder from the real acceptance):
     "name": "THE EXACT EVENT NAME",
     "eventDate": "YYYY-MM-DD",
     "expiresAt": "AGREED-EVENT-EXPIRY-ISO-TIME-WITHIN-30-DAYS",
-    "origin": "https://candids-pilot.tinomuzambi.com"
+    "origin": "https://candids.tinotech.co.za"
   },
   "terms": {
     "version": "candids-managed-v1",
