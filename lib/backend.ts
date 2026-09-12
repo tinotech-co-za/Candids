@@ -10,8 +10,15 @@ export function configuration() {
     process.env.NODE_ENV !== "production" &&
     process.env.CANDIDS_ALLOW_LOCAL === "true" &&
     /^http:\/\/127\.0\.0\.1:\d{4,5}$/.test(url);
+  // This is the one private Docker service in the reviewed self-hosted stack.
+  // Do not turn the production exception into an arbitrary HTTP/SSRF allowlist.
+  const selfHosted =
+    process.env.CANDIDS_SELF_HOSTED === "true" &&
+    url === "http://candids-convex:3210";
   if (
-    (!local && !/^https:\/\/[a-z0-9-]+\.convex\.cloud$/.test(url)) ||
+    (!local &&
+      !selfHosted &&
+      !/^https:\/\/[a-z0-9-]+\.convex\.cloud$/.test(url)) ||
     bridgeSecret.length < 32 ||
     cookieSecret.length < 32 ||
     process.env.CANDIDS_PILOT_ENABLED !== "true"
@@ -21,14 +28,19 @@ export function configuration() {
     url,
     bridgeSecret,
     cookieSecret,
-    httpUrl: local
-      ? `http://127.0.0.1:${Number(new URL(url).port) + 1}`
-      : url.replace(/\.cloud$/, ".site"),
+    selfHosted,
+    httpUrl: selfHosted
+      ? "http://candids-convex:3211"
+      : local
+        ? `http://127.0.0.1:${Number(new URL(url).port) + 1}`
+        : url.replace(/\.cloud$/, ".site"),
   };
 }
 export function backend() {
   const config = configuration();
-  const client = new ConvexHttpClient(config.url);
+  const client = new ConvexHttpClient(config.url, {
+    skipConvexDeploymentUrlCheck: config.selfHosted,
+  });
   return {
     config,
     query: (name: string, args: Record<string, Value>) =>

@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 module.exports = {
+  output: "standalone",
   poweredByHeader: false,
   devIndicators: false,
   async headers() {

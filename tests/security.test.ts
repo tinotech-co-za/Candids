@@ -85,6 +85,34 @@ describe("server session boundary", () => {
     vi.stubEnv("CANDIDS_CONVEX_URL", "https://internal.example");
     expect(configuration).toThrow();
   });
+  it("allows only the explicit private self-hosted pair while retaining pilot and capability gates", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("CANDIDS_PILOT_ENABLED", "true");
+    vi.stubEnv("CANDIDS_BRIDGE_SECRET", secret);
+    vi.stubEnv("CANDIDS_COOKIE_SECRET", secret);
+    vi.stubEnv("CANDIDS_CONVEX_URL", "http://candids-convex:3210");
+    expect(configuration).toThrow();
+    vi.stubEnv("CANDIDS_SELF_HOSTED", "true");
+    expect(configuration().httpUrl).toBe("http://candids-convex:3211");
+    expect(configuration().selfHosted).toBe(true);
+    for (const url of [
+      "http://127.0.0.1:3210",
+      "http://169.254.169.254",
+      "http://candids-convex:3210@evil.example",
+      "http://candids-convex:3210/path",
+      "http://candids-convex:3211",
+      "http://other-backend:3210",
+    ]) {
+      vi.stubEnv("CANDIDS_CONVEX_URL", url);
+      expect(configuration).toThrow();
+    }
+    vi.stubEnv("CANDIDS_CONVEX_URL", "http://candids-convex:3210");
+    vi.stubEnv("CANDIDS_PILOT_ENABLED", "false");
+    expect(configuration).toThrow();
+    vi.stubEnv("CANDIDS_PILOT_ENABLED", "true");
+    vi.stubEnv("CANDIDS_COOKIE_SECRET", "");
+    expect(configuration).toThrow();
+  });
 });
 describe("uploaded image normalization", () => {
   it("re-encodes actual images, caps dimensions and strips embedded metadata", async () => {
