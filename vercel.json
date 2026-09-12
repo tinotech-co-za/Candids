@@ -8,7 +8,8 @@
       "codex/candids-netlify-free": false,
       "codex/candids-storage-reliability": false,
       "codex/candids-devbox": false,
-      "codex/candids-offhost-backup": false
+      "codex/candids-offhost-backup": false,
+      "codex/candids-readiness": false
     }
   }
 }

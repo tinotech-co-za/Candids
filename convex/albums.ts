@@ -7,6 +7,7 @@ import {
   type QueryCtx,
   type MutationCtx,
 } from "./functions";
+import { provisionAlbum } from "./provisioning";
 
 export const LIMITS = {
   photos: 100,
@@ -62,32 +63,7 @@ export const provision = internalMutation({
     recoveryHash: v.string(),
     inviteHash: v.string(),
   },
-  handler: async (ctx, args) => {
-    if (
-      !args.name.trim() ||
-      args.name.length > 80 ||
-      !/^\d{4}-\d{2}-\d{2}$/.test(args.eventDate) ||
-      !Number.isFinite(Date.parse(args.eventDate + "T12:00:00Z")) ||
-      new Date(args.eventDate + "T12:00:00Z").toISOString().slice(0, 10) !==
-        args.eventDate ||
-      args.expiresAt <= Date.now() ||
-      args.expiresAt > Date.now() + 30 * 86400000 ||
-      ![args.hostHash, args.recoveryHash, args.inviteHash].every(hash) ||
-      new Set([args.hostHash, args.recoveryHash, args.inviteHash]).size !== 3
-    )
-      throw new Error("Invalid pilot setup");
-    return ctx.db.insert("albums", {
-      ...args,
-      name: args.name.trim(),
-      createdAt: Date.now(),
-      shared: false,
-      uploadsOpen: true,
-      photoCount: 0,
-      byteCount: 0,
-      memberCount: 0,
-      uploadCount: 0,
-    });
-  },
+  handler: (ctx, args) => provisionAlbum(ctx, args),
 });
 
 export const access = mutation({
@@ -154,7 +130,8 @@ export const access = mutation({
     }
     if (args.kind !== "guest" || album.inviteHash !== args.keyHash)
       return fail("invalid_access");
-    if (!album.uploadsOpen) return fail("guest_entry_closed");
+    if (!album.uploadsOpen || album.uploadsSuspended)
+      return fail("guest_entry_closed");
     if (album.memberCount >= LIMITS.guests) return fail("guest_limit");
     const name = args.name.trim().replace(/[\x00-\x1f\x7f]/g, "");
     if (!name || name.length > 40) return fail("invalid_name");
@@ -242,6 +219,8 @@ export const settings = mutation({
     verifyBridge(args.bridgeSecret);
     const { album, role } = await actor(ctx, args.albumId, args.actorHash);
     if (role !== "host") throw new Error("Host access required");
+    if (args.uploadsOpen === true && album.uploadsSuspended)
+      throw new Error("Uploads suspended; contact the event operator");
     if (args.inviteHash !== undefined && !hash(args.inviteHash))
       throw new Error("Invalid invite");
     if (args.blockMemberId) {
@@ -298,6 +277,7 @@ export const reserveUpload = mutation({
     }
     if (
       !album.uploadsOpen ||
+      album.uploadsSuspended ||
       album.photoCount >= LIMITS.photos ||
       album.byteCount + args.size > LIMITS.bytes ||
       album.uploadCount >= LIMITS.lifetimeUploads ||
@@ -337,6 +317,7 @@ export const uploadDetails = internalQuery({
     const item = await ctx.db.get(args.reservationId);
     if (
       !album.uploadsOpen ||
+      album.uploadsSuspended ||
       !item ||
       item.albumId !== album._id ||
       item.actorHash !== args.actorHash ||
@@ -361,6 +342,7 @@ export const finishUpload = internalMutation({
     const storage = await ctx.db.system.get(args.storageId);
     if (
       !album.uploadsOpen ||
+      album.uploadsSuspended ||
       !item ||
       item.albumId !== album._id ||
       item.actorHash !== args.actorHash ||
@@ -569,6 +551,20 @@ export const cleanup = internalMutation({
       .withIndex("by_expiry", (q) => q.lte("expiresAt", Date.now()))
       .take(1000);
     for (const attempt of attempts) await ctx.db.delete(attempt._id);
+    const heartbeat = await ctx.db
+      .query("operationalState")
+      .withIndex("by_kind", (q) => q.eq("kind", "cleanup"))
+      .unique();
+    const completed = {
+      completedAt: Date.now(),
+      expiredAlbums: expiredAlbums.length,
+    };
+    if (heartbeat) await ctx.db.patch(heartbeat._id, completed);
+    else
+      await ctx.db.insert("operationalState", {
+        kind: "cleanup",
+        ...completed,
+      });
     return { expiredAlbums: expiredAlbums.length };
   },
 });

@@ -109,7 +109,9 @@ def collect():
             raise ValueError("Checksum destination must not be a symlink")
         checksum_path.write_text(f"{checksum[0]}  {name}\n")
         checksum_path.chmod(0o600)
-        cutoff = now - dt.timedelta(days=7)
+        # Daily cleanup must happen before the seven-day maximum, not one
+        # daily interval afterward. Match local retention with an hour margin.
+        cutoff = now - dt.timedelta(days=5, hours=23)
         for path in DESTINATION.iterdir():
             archive_name = path.name.removesuffix(".sha256")
             if NAME.fullmatch(archive_name) and not path.is_symlink() and path.is_file() and timestamp(archive_name) < cutoff:
