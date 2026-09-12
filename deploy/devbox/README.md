@@ -85,7 +85,11 @@ daily timer causes a short planned service interruption. Install/enable it only
 after a successful manual backup and independent restore. Data archives are
 private and contain photos and access credentials; never commit or publish them.
 
-Backups are retained locally for seven days. Install `copy-backup-offhost.py` in
+Backups rotate within a seven-day maximum. The daily purge uses an age cutoff
+of five days and 23 hours, reserving the next daily interval and a scheduling
+margin instead of allowing an extra day past the stated maximum. This retains
+six recent daily recovery points when the timers run normally. A failed/stopped
+rotation requires operator recovery and retention review. Install `copy-backup-offhost.py` in
 Agentbox's `~/.local/share/tinotech-candids/ops/`, and its off-host service/timer in
 `~/.config/systemd/user/`. Run the service once, verify success, then enable its
 timer under the lingering `agent` user. It copies the latest dedicated devbox

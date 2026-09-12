@@ -80,6 +80,18 @@ class BackupCopyTests(unittest.TestCase):
         self.assertEqual(unrelated.read_text(), "keep")
         self.assertTrue(linked.is_symlink())
 
+    def test_daily_rotation_removes_six_day_archives_before_seven_day_maximum(self):
+        self.destination.mkdir()
+        now = dt.datetime.now(dt.timezone.utc)
+        dated = lambda days: "candids-" + (now - dt.timedelta(days=days)).strftime("%Y%m%dT%H%M%SZ") + ".tar.gz"
+        previous = self.destination / dated(5)
+        expiring = self.destination / dated(6)
+        previous.write_bytes(b"keep recent recovery point")
+        expiring.write_bytes(b"remove before next daily interval exceeds maximum")
+        self.collect()
+        self.assertTrue(previous.exists())
+        self.assertFalse(expiring.exists())
+
     def test_existing_mismatch_is_not_overwritten(self):
         self.destination.mkdir()
         final = self.destination / self.name

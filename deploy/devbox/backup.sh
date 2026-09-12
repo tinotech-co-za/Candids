@@ -33,6 +33,7 @@ gzip -t "$archive.partial"
 mv "$archive.partial" "$archive"
 sha256sum "$archive" >"$archive.sha256"
 chmod 600 "$archive" "$archive.sha256"
-# Only this service's dated archives are covered by the seven-day backup policy.
-find "$state/backups" -maxdepth 1 -type f \( -name 'candids-????????T??????Z.tar.gz' -o -name 'candids-????????T??????Z.tar.gz.sha256' \) -mmin +10080 -delete
+# Keep the daily rotation below seven days: reserve one daily interval plus
+# an hour of scheduling margin. Only this service's dated archives are covered.
+find "$state/backups" -maxdepth 1 -type f \( -name 'candids-????????T??????Z.tar.gz' -o -name 'candids-????????T??????Z.tar.gz.sha256' \) -mmin +8580 -delete
 echo 'Candids stopped-state backup completed; copy it to protected off-host storage.'
