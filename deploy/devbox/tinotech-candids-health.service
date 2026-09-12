@@ -1,0 +1,12 @@
+[Unit]
+Description=Check Candids app, cleanup, capacity and protected backups
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 %h/.local/share/tinotech-candids/ops/health-monitor.py
+UMask=0077
+NoNewPrivileges=true
+Nice=10
+MemoryMax=128M
+CPUQuota=15%
+TimeoutStartSec=2min

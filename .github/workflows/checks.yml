@@ -1,0 +1,19 @@
+name: Candids checks
+on: [push, pull_request]
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: python3 -m unittest discover -s tests -p 'test_*.py'
+      - run: npm run type-check
+      - run: npm run lint
+      - run: npm run build
+        env:
+          CANDIDS_PILOT_ENABLED: "false"

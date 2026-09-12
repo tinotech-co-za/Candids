@@ -1,15 +1,20 @@
-"use client";
-import { unstable_noStore as noStore } from "next/cache";
-
+import Link from "next/link";
+import { Brand, Footer } from "./components/Brand";
 export default function NotFound() {
-  noStore();
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">404</h1>
-        <p className="text-xl text-gray-600">Page not found</p>
-      </div>
-    </div>
+    <>
+      <Brand />
+      <main className="copy-page">
+        <p className="eyebrow">404</p>
+        <h1>This page is not in the album.</h1>
+        <p>
+          Your host can share a fresh invitation if your album link has changed.
+        </p>
+        <Link href="/" className="button">
+          Back to Candids
+        </Link>
+      </main>
+      <Footer />
+    </>
   );
 }

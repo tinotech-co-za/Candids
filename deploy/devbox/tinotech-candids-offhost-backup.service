@@ -1,0 +1,12 @@
+[Unit]
+Description=Verify the latest Candids backup on protected Agentbox storage
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 %h/.local/share/tinotech-candids/ops/copy-backup-offhost.py
+UMask=0077
+NoNewPrivileges=true
+Nice=10
+MemoryMax=256M
+CPUQuota=25%
+TimeoutStartSec=15min

@@ -115,4 +115,14 @@ out
 *.sw?
 
 # Convex
-convex/_generated
+
+.convex/
+.vercel/
+.env*
+!.env.example
+.vercel
+
+# Local Netlify artifacts and project linkage
+.netlify/
+__pycache__/
+*.pyc

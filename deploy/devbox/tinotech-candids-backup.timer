@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily private Candids stopped-state backup
+
+[Timer]
+OnCalendar=*-*-* 03:25:00 UTC
+RandomizedDelaySec=5min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

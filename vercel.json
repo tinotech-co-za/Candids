@@ -1,0 +1,16 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "installCommand": "npm ci",
+  "git": {
+    "deploymentEnabled": {
+      "codex/candids-netlify-free": false,
+      "codex/candids-storage-reliability": false,
+      "codex/candids-devbox": false,
+      "codex/candids-offhost-backup": false,
+      "codex/candids-readiness": false,
+      "codex/candids-health-wire-counts": false
+    }
+  }
+}

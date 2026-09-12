@@ -1,0 +1,35 @@
+import type { Album } from "./types";
+export const sampleAlbum: Album = {
+  id: "demo",
+  name: "The long-table lunch",
+  eventDate: "2026-09-19",
+  expiresAt: Date.UTC(2026, 9, 19),
+  shared: false,
+  uploadsOpen: true,
+  role: "host",
+  guestName: "Host",
+  photoCount: 6,
+  remainingUploads: 94,
+  photos: [
+    ["table", "A place for everyone", "Alex"],
+    ["flowers", "Picked from the garden", "Sam"],
+    ["garden", "The afternoon light", "Jamie"],
+    ["cake", "Save me a slice", "Alex"],
+    ["music", "One more song", "Sam"],
+    ["camera", "The little things", "Jamie"],
+  ].map(([id, caption, contributor], index) => ({
+    id,
+    caption,
+    contributor,
+    createdAt: Date.UTC(2026, 8, 19, 13, index * 5),
+    size: 0,
+    canDelete: true,
+    url: `/demo/${id}.jpg`,
+  })),
+  members: [
+    { id: "alex", name: "Alex", blocked: false },
+    { id: "sam", name: "Sam", blocked: false },
+    { id: "jamie", name: "Jamie", blocked: false },
+  ],
+  limits: { photos: 100, guests: 50, guestPhotos: 20 },
+};
