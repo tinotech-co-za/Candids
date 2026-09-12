@@ -11,7 +11,8 @@ const reviewedHash =
 try {
   const [reference, envPath] = process.argv.slice(2);
   if (
-    !/^tino-service-[a-f0-9]{32}$/.test(reference || "") ||
+    (reference !== "--health" &&
+      !/^tino-service-[a-f0-9]{32}$/.test(reference || "")) ||
     !envPath ||
     resolve(envPath).startsWith(`${process.cwd()}/`) ||
     ((await stat(envPath)).mode & 0o077) !== 0
@@ -33,8 +34,29 @@ try {
   const { paymentConfig, fetchServiceReceipt } = await import(
     pathToFileURL(modulePath).href
   );
-  const receipt = await fetchServiceReceipt(reference, paymentConfig());
-  process.stdout.write(JSON.stringify(receipt));
+  const config = paymentConfig();
+  if (reference === "--health") {
+    const response = await fetch(config.baseUrl + "/health", {
+      headers: { Authorization: `Bearer ${config.key}` },
+      signal: AbortSignal.timeout(15000),
+      cache: "no-store",
+      redirect: "error",
+    });
+    const value = await response.json();
+    if (
+      !response.ok ||
+      value.status !== true ||
+      value.data?.mode !== "live" ||
+      value.data?.product !== "tinotech-service-quote-v1"
+    )
+      throw new Error("Live SERVICES health is unconfirmed");
+    process.stdout.write(
+      JSON.stringify({ liveServicesAuthenticated: true, chargeCreated: false }),
+    );
+  } else {
+    const receipt = await fetchServiceReceipt(reference, config);
+    process.stdout.write(JSON.stringify(receipt));
+  }
 } catch {
   process.stderr.write(
     "Fresh service receipt verification failed; no provisioning was attempted.\n",

@@ -139,3 +139,8 @@ an old recovery point must be retained beyond the accepted rotation for a specif
 incident, agree and record that exception with the affected host and its removal
 date. Never delete unrelated archives, running data or an accepted-case journal
 as a generic cleanup. No real event is currently provisioned by these scripts.
+
+For a read-only live provider/configuration preflight without an invoice or
+purchase, run `node scripts/verify-service-receipt.mjs --health
+/private/service-operator.env`. It authenticates only the SERVICES gateway and
+merchant configuration; it does not prove that any event has been paid.
