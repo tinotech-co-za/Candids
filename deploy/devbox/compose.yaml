@@ -44,6 +44,9 @@ services:
       options: { max-size: "10m", max-file: "3" }
   candids-convex:
     image: ghcr.io/get-convex/convex-backend@sha256:6963145df5eca4265f4cf9eda4c494e35a049121405a50f4ff90e6310834986a
+    # Upstream executables are mode0744 owned by root. Keep its required UID,
+    # remove capabilities, and give it only this root-owned private data mount.
+    user: "0:0"
     pull_policy: never
     restart: unless-stopped
     stop_signal: SIGINT
@@ -83,4 +86,6 @@ services:
 networks:
   frontend: {}
   backend:
-    internal: true
+    # An internal:true network prevents the loopback SSH deployment port too.
+    # This unshared bridge has no published public backend or action endpoint.
+    driver: bridge

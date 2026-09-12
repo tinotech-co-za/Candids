@@ -9,7 +9,8 @@ Only Next port 4211 is published to the LAN, behind the reviewed homelab proxy a
 `https://candids-pilot.tinomuzambi.com`. The host firewall must restrict that port
 to the proxy. Convex's API binds only host loopback 3210 for SSH deployment, and
 HTTP actions on 3211 are Docker-network-only. There is no dashboard container.
-The backend has no public route and cannot initiate external network requests.
+The backend has no public route. Its private unshared bridge permits outbound
+requests; current album functions do not call external services.
 
 Resource limits: Next 768 MiB/1 CPU/256 PIDs; Convex 2 GiB/1.5 CPUs/256 PIDs;
 three 10 MiB log files per service. Data lives outside the runtime directory at
@@ -36,6 +37,11 @@ random bridge/cookie secrets), and the protected operator record. Use mode 0600
 for credentials and mode 0700 for their directory. Never print Compose's fully
 rendered configuration or unrestricted Docker inspect output after configuration.
 Create the state directory with an `INSTANCE` file containing `tinotech-candids`.
+The official backend executable is root-owned mode 0744. Keep its required UID 0
+with every Linux capability dropped, and make its data directory root-owned mode
+0700; a dev-owned mode 0700 directory is inaccessible after capabilities are
+dropped. Next remains non-root. No privileged container or host Docker socket is
+mounted.
 
 Review source, tests, final image IDs and Compose before starting the new stack.
 Then start only the backend, and capture `docker compose exec -T candids-convex

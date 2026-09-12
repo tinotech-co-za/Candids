@@ -2,6 +2,7 @@ ARG NODE_IMAGE=node:24-bookworm-slim@sha256:2fe369e969550cde8e867afc3fe370b26014
 FROM ${NODE_IMAGE} AS build
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV CANDIDS_APP_URL=https://candids-pilot.tinomuzambi.com
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit
 COPY . .
