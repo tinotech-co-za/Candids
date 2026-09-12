@@ -110,13 +110,25 @@ try {
     browserErrors: failures.length,
   };
   if (process.env.CANDIDS_TEST_CARD) {
-    assert.ok(
-      base.startsWith("http://127.0.0.1:"),
-      "Real acceptance is restricted to an isolated local backend",
-    );
     const card = JSON.parse(
       await readFile(process.env.CANDIDS_TEST_CARD, "utf8"),
     );
+    const hostedSynthetic =
+      base === "https://candids-pilot.tinomuzambi.com" &&
+      process.env.CANDIDS_TEST_ALLOW_HOSTED_SYNTHETIC === "true" &&
+      card.deploymentMode === "self-hosted" &&
+      card.synthetic === true &&
+      card.name.startsWith("Synthetic ");
+    assert.ok(
+      base.startsWith("http://127.0.0.1:") || hostedSynthetic,
+      "Use isolated loopback acceptance or the explicitly enabled synthetic self-hosted pilot.",
+    );
+    for (const url of [card.hostUrl, card.recoveryUrl, card.guestUrl])
+      assert.equal(
+        new URL(url).origin,
+        new URL(base).origin,
+        "Access cards must match the exact tested origin.",
+      );
     const host = await context.newPage();
     await host.goto(card.hostUrl);
     await host.getByRole("button", { name: "Open album", exact: true }).click();

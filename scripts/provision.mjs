@@ -2,16 +2,17 @@ import { randomBytes, createHash } from "node:crypto";
 import { readFile, open, chmod } from "node:fs/promises";
 import { isAbsolute, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
+import { parse } from "dotenv";
 const [mode, inputPath, outputPath] = process.argv.slice(2);
 if (
-  !["--local", "--prod"].includes(mode) ||
+  !["--local", "--prod", "--self-hosted"].includes(mode) ||
   !inputPath ||
   !outputPath ||
   !isAbsolute(outputPath) ||
   resolve(outputPath).startsWith(`${process.cwd()}/`)
 ) {
   throw new Error(
-    "Usage: node scripts/provision.mjs --local|--prod INPUT.json /absolute/private/output.json (outside checkout)",
+    "Usage: node scripts/provision.mjs --local|--prod|--self-hosted INPUT.json /absolute/private/output.json (outside checkout)",
   );
 }
 const input = JSON.parse(await readFile(inputPath, "utf8"));
@@ -20,13 +21,37 @@ if (
   origin.pathname !== "/" ||
   origin.search ||
   origin.hash ||
-  (mode === "--prod"
+  origin.username ||
+  origin.password ||
+  (mode !== "--local"
     ? origin.protocol !== "https:"
     : origin.hostname !== "127.0.0.1")
 )
   throw new Error(
     "Use the exact HTTPS app origin, or 127.0.0.1 for isolated local testing",
   );
+let operatorFile;
+if (mode === "--self-hosted") {
+  operatorFile = process.env.CANDIDS_SELF_HOSTED_ENV;
+  if (
+    !operatorFile ||
+    !isAbsolute(operatorFile) ||
+    resolve(operatorFile).startsWith(`${process.cwd()}/`)
+  )
+    throw new Error(
+      "Self-hosted provisioning requires a private operator env file outside the checkout.",
+    );
+  const selected = parse(await readFile(operatorFile, "utf8"));
+  if (
+    selected.CONVEX_SELF_HOSTED_URL !== "http://127.0.0.1:43210" ||
+    !selected.CONVEX_SELF_HOSTED_ADMIN_KEY ||
+    selected.CONVEX_DEPLOYMENT ||
+    selected.CONVEX_DEPLOY_KEY
+  )
+    throw new Error(
+      "Use the dedicated SSH tunnel and self-hosted admin credential; cloud deployment selectors are not accepted.",
+    );
+}
 if (
   mode === "--local" &&
   !(await readFile(".env.local", "utf8")).match(
@@ -60,6 +85,7 @@ try {
       "albums:provision",
       JSON.stringify(args),
       ...(mode === "--prod" ? ["--prod"] : []),
+      ...(operatorFile ? ["--env-file", operatorFile] : []),
     ],
     { encoding: "utf8", timeout: 90000 },
   );
@@ -80,6 +106,8 @@ try {
         name: args.name,
         eventDate: args.eventDate,
         expiresAt: input.expiresAt,
+        deploymentMode: mode.slice(2),
+        synthetic: input.synthetic === true,
         hostKey,
         recoveryKey,
         hostUrl: `${base}#host=${hostKey}`,

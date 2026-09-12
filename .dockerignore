@@ -1,0 +1,12 @@
+node_modules
+.next
+.netlify
+.vercel
+.convex
+.git
+.env*
+!.env.example
+*.log
+*.tsbuildinfo
+docs/qa
+deploy

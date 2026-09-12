@@ -1,0 +1,86 @@
+name: tinotech-candids
+services:
+  web:
+    image: ${CANDIDS_IMAGE:?Set the reviewed immutable Candids image}
+    pull_policy: never
+    restart: unless-stopped
+    env_file: ./secrets/web.env
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      PORT: "3000"
+      CANDIDS_SELF_HOSTED: "true"
+      CANDIDS_CONVEX_URL: http://candids-convex:3210
+      CANDIDS_ALLOW_LOCAL: "false"
+    ports:
+      - "4211:3000"
+    depends_on:
+      candids-convex:
+        condition: service_healthy
+    networks: [frontend, backend]
+    read_only: true
+    tmpfs:
+      - /tmp:size=128m,mode=1777
+      - /app/.next/cache:size=64m,uid=1000,gid=1000,mode=0700
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 768m
+    cpus: 1.0
+    pids_limit: 256
+    healthcheck:
+      test:
+        [
+          CMD,
+          node,
+          -e,
+          "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+  candids-convex:
+    image: ghcr.io/get-convex/convex-backend@sha256:6963145df5eca4265f4cf9eda4c494e35a049121405a50f4ff90e6310834986a
+    pull_policy: never
+    restart: unless-stopped
+    stop_signal: SIGINT
+    stop_grace_period: 30s
+    env_file: ./secrets/backend.env
+    environment:
+      CONVEX_CLOUD_ORIGIN: http://candids-convex:3210
+      CONVEX_SITE_ORIGIN: http://candids-convex:3211
+      DISABLE_BEACON: "true"
+      DISABLE_METRICS_ENDPOINT: "true"
+      DOCUMENT_RETENTION_DELAY: "172800"
+      RUST_LOG: warn
+      APPLICATION_MAX_CONCURRENT_MUTATIONS: "8"
+      APPLICATION_MAX_CONCURRENT_QUERIES: "8"
+      APPLICATION_MAX_CONCURRENT_V8_ACTIONS: "4"
+      APPLICATION_MAX_CONCURRENT_NODE_ACTIONS: "2"
+    # Admin/API access is limited to SSH tunnels. HTTP actions have no host port.
+    ports:
+      - "127.0.0.1:3210:3210"
+    volumes:
+      - /home/dev/.local/share/homelab/tinotech-candids/data:/convex/data
+    networks: [backend]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 2g
+    cpus: 1.5
+    pids_limit: 256
+    healthcheck:
+      test: [CMD, curl, -fsS, http://127.0.0.1:3210/version]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+networks:
+  frontend: {}
+  backend:
+    internal: true

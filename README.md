@@ -39,6 +39,13 @@ The script checks desktop/mobile overflow, host/guest views, sharing, photo ligh
 
 ## Backend setup and first paid event
 
+The dedicated self-hosted alternative is documented in [devbox deployment](deploy/devbox/README.md).
+It uses the official Convex backend container, private Docker networking, a
+standalone Next runtime, and independent instance/bridge/cookie secrets. Its
+isolated HTTPS synthetic acceptance and backup restoration must pass before any
+paid event. The cloud instructions below remain available; a development backend
+must never be exposed as the production service.
+
 1. Create a **new isolated Convex project**, not the old photo-trading deployment. Official [anonymous agent mode](https://docs.convex.dev/cli/agent-mode) provisions a local backend without login; it does not provision a publicly hosted backend. For production, authenticate the Convex CLI with the intended account and select the new project, or supply its scoped deployment key privately. A [local backend](https://docs.convex.dev/cli/local-deployments) is for development and must not be exposed as production.
 2. Deploy these Convex functions to the new project. Set `CANDIDS_BRIDGE_SECRET` in that deployment using `npx convex env set ... --from-file /private/backend.env`; use `--prod` deliberately for production. Keep the private env file outside Git. The same bridge secret goes into Vercel, alongside a distinct `CANDIDS_COOKIE_SECRET`.
 3. Configure the Vercel project with `CANDIDS_CONVEX_URL=https://YOUR-DEPLOYMENT.convex.cloud`, the two server secrets, the exact HTTPS `CANDIDS_APP_URL`, and initially `CANDIDS_PILOT_ENABLED=false`. Do not expose keys through NEXT_PUBLIC variables. Preview and production must use separate secrets and backends.
