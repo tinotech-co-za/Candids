@@ -6,7 +6,7 @@ volume, database or capability receipt. The public synthetic demo still works
 with `CANDIDS_PILOT_ENABLED=false`.
 
 Only Next port 4211 is published to the LAN, behind the reviewed homelab proxy at
-`https://candids-pilot.tinomuzambi.com`. The host firewall must restrict that port
+`https://candids.tinotech.co.za`. The host firewall must restrict that port
 to the proxy. Convex's API binds only host loopback 3210 for SSH deployment, and
 HTTP actions on 3211 are Docker-network-only. There is no dashboard container.
 The backend has no public route. Its private unshared bridge permits outbound

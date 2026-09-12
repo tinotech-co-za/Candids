@@ -13,7 +13,7 @@ import urllib.error
 import urllib.request
 
 ROOT = Path.home() / '.local/share/tinotech-candids'
-ORIGIN = 'https://candids-pilot.tinomuzambi.com'
+ORIGIN = 'https://candids.tinotech.co.za'
 
 
 def run(*args):

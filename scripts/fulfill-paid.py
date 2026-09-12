@@ -13,7 +13,7 @@ import subprocess
 import sys
 import urllib.request
 
-ORIGIN = "https://candids-pilot.tinomuzambi.com"
+ORIGIN = "https://candids.tinotech.co.za"
 CHECKOUT = Path(__file__).resolve().parents[1]
 
 

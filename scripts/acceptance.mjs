@@ -127,7 +127,7 @@ try {
       await readFile(process.env.CANDIDS_TEST_CARD, "utf8"),
     );
     const hostedSynthetic =
-      base === "https://candids-pilot.tinomuzambi.com" &&
+      base === "https://candids.tinotech.co.za" &&
       process.env.CANDIDS_TEST_ALLOW_HOSTED_SYNTHETIC === "true" &&
       card.deploymentMode === "self-hosted" &&
       card.synthetic === true &&
