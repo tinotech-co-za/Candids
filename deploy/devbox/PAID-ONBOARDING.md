@@ -141,6 +141,18 @@ date. Never delete unrelated archives, running data or an accepted-case journal
 as a generic cleanup. No real event is currently provisioned by these scripts.
 
 For a read-only live provider/configuration preflight without an invoice or
-purchase, run `node scripts/verify-service-receipt.mjs --health
+purchase, run `node --dns-result-order=ipv4first --no-network-family-autoselection
+scripts/verify-service-receipt.mjs --health
 /private/service-operator.env`. It authenticates only the SERVICES gateway and
 merchant configuration; it does not prove that any event has been paid.
+
+The fulfillment and payment recheck commands use these same two Node launch
+flags only inside their isolated read-only verifier process. Agentbox's normal
+dual-stack connection attempt timed out after the company endpoint moved to
+Netlify; an IPv4-first serial connection passed live authenticated health with
+the unchanged canonical verifier. The flags retain DNS resolution, certificate
+validation, the fixed company gateway, redirect rejection, existing request
+deadlines and the 65-second parent deadline. Do not set global `NODE_OPTIONS`,
+pin a CDN address, or change the reviewed verifier hash to work around transport.
+Node documents [DNS ordering](https://nodejs.org/api/cli.html#--dns-result-orderorder)
+and [family selection](https://nodejs.org/api/cli.html#--no-network-family-autoselection).
