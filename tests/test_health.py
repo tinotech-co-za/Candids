@@ -21,6 +21,13 @@ class HealthTests(unittest.TestCase):
     def test_bounded_pilot_and_fresh_recovery_are_healthy(self):
         self.assertTrue(health.evaluate(self.remote, True, True, self.now)['ok'])
 
+    def test_convex_encoded_integral_float_is_accepted_but_other_counts_are_rejected(self):
+        self.remote['backend']['activeAlbums'] = 5.0
+        self.assertTrue(health.evaluate(self.remote, True, True, self.now)['ok'])
+        for invalid in (True, 1.5, float('nan'), float('inf'), 6.0, -1.0, '5'):
+            self.remote['backend']['activeAlbums'] = invalid
+            self.assertFalse(health.evaluate(self.remote, True, True, self.now)['ok'])
+
     def test_stale_cleanup_capacity_disk_timer_and_backup_fail_closed(self):
         mutations = [lambda x: x['backend'].update(lastCleanupAt=(self.now - 5000) * 1000),
             lambda x: x['backend'].update(overdueExpiredAlbums=1), lambda x: x['backend'].update(activeAlbums=6),

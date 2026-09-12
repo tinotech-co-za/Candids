@@ -27,7 +27,7 @@ def evaluate(remote, public_ok, offhost, now):
         'publicApp': public_ok is True,
         'containers': len(containers) == 2 and all(x.get('running') is True and x.get('healthy') is True for x in containers.values()),
         'disk': type(remote.get('freeBytes')) is int and remote['freeBytes'] >= 2 * 1024**3,
-        'capacity': type(backend.get('activeAlbums')) is int and 0 <= backend['activeAlbums'] <= 5 and backend.get('managedEventCap') == 5,
+        'capacity': type(backend.get('activeAlbums')) in (int, float) and 0 <= backend['activeAlbums'] <= 5 and backend['activeAlbums'] == int(backend['activeAlbums']) and backend.get('managedEventCap') == 5,
         'cleanup': type(backend.get('lastCleanupAt')) in (int, float) and -300 <= now - backend['lastCleanupAt'] / 1000 <= 4200 and backend.get('overdueExpiredAlbums') == 0,
         'localBackupTimer': remote.get('backupTimer') == 'active',
         'localBackupService': remote.get('backupService') == 'success',

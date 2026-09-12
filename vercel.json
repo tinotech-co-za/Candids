@@ -9,7 +9,8 @@
       "codex/candids-storage-reliability": false,
       "codex/candids-devbox": false,
       "codex/candids-offhost-backup": false,
-      "codex/candids-readiness": false
+      "codex/candids-readiness": false,
+      "codex/candids-health-wire-counts": false
     }
   }
 }
