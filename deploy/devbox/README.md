@@ -86,8 +86,17 @@ daily timer causes a short planned service interruption. Install/enable it only
 after a successful manual backup and independent restore. Data archives are
 private and contain photos and access credentials; never commit or publish them.
 
-Backups are retained locally for seven days and must also be copied to protected
-Agentbox storage. Keep off-host retention bounded to the same seven-day policy.
+Backups are retained locally for seven days. Install `copy-backup-offhost.py` in
+Agentbox's `~/.local/share/tinotech-candids/ops/`, and its off-host service/timer in
+`~/.config/systemd/user/`. Run the service once, verify success, then enable its
+timer under the lingering `agent` user. It copies the latest dedicated devbox
+archive at04:00UTC, checks freshness, capacity, gzip and SHA256, and keeps protected
+Agentbox copies in `~/.local/share/tinotech-candids/backups` for seven days. Its
+only SSH target is `devbox`, with fixed dedicated archive paths and validated
+dated filenames. It fails on stale backups, mismatched existing files and an
+archive over2GiB rather than silently accepting an incomplete recovery point.
+Check both backup units for failures before opening a managed event; the timers
+do not send external alerts on their own.
 Live album expiry is independent of backups; agree the additional backup retention
 in written event terms. Never describe live deletion as immediate removal from
 backups. Alert on failed backups, failing health, stale cleanup and less than
