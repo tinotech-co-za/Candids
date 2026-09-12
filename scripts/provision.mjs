@@ -78,9 +78,9 @@ if (!Number.isFinite(args.expiresAt))
 const file = await open(outputPath, "wx", 0o600);
 try {
   const result = spawnSync(
-    "npx",
+    process.execPath,
     [
-      "convex",
+      resolve("node_modules/convex/bin/main.js"),
       "run",
       "albums:provision",
       JSON.stringify(args),
