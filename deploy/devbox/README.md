@@ -95,6 +95,8 @@ Agentbox copies in `~/.local/share/tinotech-candids/backups` for seven days. Its
 only SSH target is `devbox`, with fixed dedicated archive paths and validated
 dated filenames. It fails on stale backups, mismatched existing files and an
 archive over 2 GiB rather than silently accepting an incomplete recovery point.
+After an interrupted process, its exclusive copy lock protects cleanup of only
+its dated regular partial files; completed archives are never overwritten.
 Check both backup units for failures before opening a managed event; the timers
 do not send external alerts on their own.
 Live album expiry is independent of backups; agree the additional backup retention

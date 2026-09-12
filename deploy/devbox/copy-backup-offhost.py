@@ -49,6 +49,16 @@ def collect():
     lock = os.open(DESTINATION / ".copy.lock", os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
     try:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        # A killed process cannot run its finally block. With this exclusive
+        # lock, no other collector owns a partial; remove only our dated files.
+        for path in DESTINATION.iterdir():
+            if not path.name.endswith(".partial") or path.is_symlink() or not path.is_file():
+                continue
+            try:
+                timestamp(path.name.removesuffix(".partial"))
+            except ValueError:
+                continue
+            path.unlink()
         names = remote(
             f"sudo -n find {REMOTE} -maxdepth 1 -type f -name 'candids-*.tar.gz' -printf '%f\\n'"
         ).splitlines()

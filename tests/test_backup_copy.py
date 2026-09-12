@@ -88,6 +88,23 @@ class BackupCopyTests(unittest.TestCase):
             self.collect()
         self.assertEqual(final.read_bytes(), b"preserve evidence")
 
+    def test_interrupted_transfers_recover_without_touching_other_files(self):
+        self.destination.mkdir()
+        partial = self.destination / (self.name + ".partial")
+        partial.write_bytes(b"interrupted transfer")
+        old_partial = self.destination / "candids-20200101T000000Z.tar.gz.partial"
+        old_partial.write_bytes(b"old interrupted transfer")
+        unrelated = self.destination / "operator.partial"
+        unrelated.write_text("keep")
+        linked = self.destination / "candids-20200102T000000Z.tar.gz.partial"
+        linked.symlink_to(unrelated)
+        self.collect()
+        self.assertEqual((self.destination / self.name).read_bytes(), self.archive)
+        self.assertFalse(partial.exists())
+        self.assertFalse(old_partial.exists())
+        self.assertEqual(unrelated.read_text(), "keep")
+        self.assertTrue(linked.is_symlink())
+
 
 if __name__ == "__main__":
     unittest.main()
