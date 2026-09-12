@@ -3,35 +3,49 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "dev": "npm-run-all --parallel dev:frontend dev:backend",
-    "dev:frontend": "next dev",
+    "dev": "next dev",
     "dev:backend": "convex dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint && tsc -p convex -noEmit --pretty false && convex dev --once",
-    "type-check": "tsc --noEmit"
+    "lint": "eslint .",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
-    "@convex-dev/auth": "^0.0.80",
+    "@convex-dev/auth": "^0.0.95",
     "clsx": "^2.1.1",
-    "convex": "^1.24.2",
-    "next": "^15.0.0",
-    "react": "^19.0.0",
+    "convex": "^1.45.0",
+    "fflate": "^0.8.3",
+    "next": "^15.5.25",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "sharp": "^0.35.4",
     "sonner": "^2.0.3",
     "tailwind-merge": "^3.1.0"
   },
   "devDependencies": {
+    "@edge-runtime/vm": "^5.0.0",
+    "@eslint/eslintrc": "^3.3.7",
+    "@playwright/test": "^1.63.0",
     "@types/node": "^22.13.10",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "autoprefixer": "~10",
+    "convex-test": "^0.0.58",
     "dotenv": "^16.4.7",
     "eslint": "^9.21.0",
-    "eslint-config-next": "^15.0.0",
+    "eslint-config-next": "^15.5.25",
     "npm-run-all": "^4.1.5",
-    "postcss": "~8",
+    "postcss": "^8.5.23",
     "prettier": "^3.5.3",
     "tailwindcss": "~3",
-    "typescript": "~5.7.2"
+    "typescript": "~5.7.2",
+    "vitest": "^5.0.0"
+  },
+  "engines": {
+    "node": "24.x"
+  },
+  "overrides": {
+    "postcss": "$postcss"
   }
 }

@@ -115,4 +115,9 @@ out
 *.sw?
 
 # Convex
-convex/_generated
+
+.convex/
+.vercel/
+.env*
+!.env.example
+.vercel

@@ -3,13 +3,76 @@ import { v } from "convex/values";
 import { authTables } from "@convex-dev/auth/server";
 
 const applicationTables = {
+  albums: defineTable({
+    name: v.string(),
+    eventDate: v.string(),
+    hostHash: v.string(),
+    recoveryHash: v.string(),
+    inviteHash: v.string(),
+    expiresAt: v.number(),
+    createdAt: v.number(),
+    shared: v.boolean(),
+    uploadsOpen: v.boolean(),
+    photoCount: v.number(),
+    byteCount: v.number(),
+    memberCount: v.number(),
+    uploadCount: v.number(),
+  }).index("by_expiry", ["expiresAt"]),
+  albumMembers: defineTable({
+    albumId: v.id("albums"),
+    tokenHash: v.string(),
+    name: v.string(),
+    blocked: v.boolean(),
+    photoCount: v.number(),
+    joinedAt: v.number(),
+  })
+    .index("by_token", ["tokenHash"])
+    .index("by_album", ["albumId"]),
+  albumPhotos: defineTable({
+    albumId: v.id("albums"),
+    memberId: v.optional(v.id("albumMembers")),
+    storageId: v.id("_storage"),
+    size: v.number(),
+    caption: v.string(),
+    contributor: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_album", ["albumId"])
+    .index("by_storage", ["storageId"]),
+  albumUploads: defineTable({
+    albumId: v.id("albums"),
+    memberId: v.optional(v.id("albumMembers")),
+    actorHash: v.string(),
+    requestId: v.string(),
+    size: v.number(),
+    caption: v.string(),
+    contributor: v.string(),
+    status: v.union(
+      v.literal("reserved"),
+      v.literal("complete"),
+      v.literal("failed"),
+    ),
+    photoId: v.optional(v.id("albumPhotos")),
+    expiresAt: v.number(),
+  })
+    .index("by_request", ["albumId", "actorHash", "requestId"])
+    .index("by_expiry", ["expiresAt"])
+    .index("by_status_expiry", ["status", "expiresAt"])
+    .index("by_album", ["albumId"]),
+  albumAttempts: defineTable({
+    key: v.string(),
+    count: v.number(),
+    expiresAt: v.number(),
+  })
+    .index("by_key", ["key"])
+    .index("by_expiry", ["expiresAt"]),
   sessions: defineTable({
     name: v.string(),
     hostId: v.id("users"),
     status: v.union(
       v.literal("active"),
       v.literal("revealed"),
-      v.literal("ended")
+      v.literal("ended"),
     ),
     revealTime: v.optional(v.number()),
     createdAt: v.number(),
@@ -50,7 +113,7 @@ const applicationTables = {
     status: v.union(
       v.literal("pending"),
       v.literal("accepted"),
-      v.literal("rejected")
+      v.literal("rejected"),
     ),
     createdAt: v.number(),
     completedAt: v.optional(v.number()), // When trade was completed
@@ -86,7 +149,7 @@ const applicationTables = {
         name: v.string(), // Display name
         earnedAt: v.number(), // When badge was earned
         criteria: v.optional(v.string()), // How it was earned
-      })
+      }),
     ),
     lastActivity: v.number(), // Timestamp of last activity
     joinedAt: v.number(), // When user first joined

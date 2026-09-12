@@ -1,0 +1,28 @@
+{
+  "sample": {
+    "desktop": true,
+    "mobile": true,
+    "hostGuestVisibility": true,
+    "photoDialog": true,
+    "zipEntries": 7,
+    "tabOnlyUpload": true
+  },
+  "real": {
+    "hostAccess": true,
+    "guestConsent": true,
+    "hostAndGuestUpload": true,
+    "unsharedBinaryDenied": true,
+    "sharedBinaryAllowed": true,
+    "zipEntries": 3,
+    "recoveryRevokesOldHost": true,
+    "blockedGuestBinaryDenied": true,
+    "guestMutationDenied": true
+  },
+  "browserErrors": 0,
+  "testedAt": "2026-09-12",
+  "backend": "Official accountless local Convex, isolated synthetic records only",
+  "unitTests": 16,
+  "typecheck": "passed",
+  "lint": "passed",
+  "deployment": "Public demo only, hosted private albums gated"
+}
