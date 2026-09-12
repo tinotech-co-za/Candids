@@ -56,8 +56,8 @@ export default function Privacy() {
         <h2>Data and retention</h2>
         <p>
           Live albums store your chosen display name, images and upload metadata
-          in the configured Convex deployment, served through Tinotech’s
-          application on Vercel. Access uses a secure session cookie. An hourly
+          in Tinotech’s dedicated event backend, served through its managed
+          application. Access uses a secure session cookie. An hourly
           hashed request identifier limits repeated access attempts; it expires
           within two hours and is removed by scheduled cleanup. Images are
           resized and re-encoded to remove embedded metadata, including GPS. No
@@ -66,10 +66,19 @@ export default function Privacy() {
         <p>
           Access stops at the recorded expiry, shown in the album. Scheduled
           cleanup removes album files and records afterward, normally within 30
-          minutes for the pilot. Infrastructure backups may follow the
-          providers’ separate retention periods. Hosts should download their
+          minutes for the pilot. Protected backups use a seven-day retention
+          rotation, as agreed in the event terms, so deleted photos can remain
+          in those backups during that rotation. Hosts should download their
           album before expiry. Copies already downloaded or photographed by a
           participant cannot be revoked.
+        </p>
+        <p>
+          Tinotech keeps the accepted quote, buyer contact and delivery record
+          privately for billing and support. Minimal payment references and
+          fulfillment records remain after album expiry to prevent duplicate
+          activation; they contain no photographs or guest display names. A
+          reviewed payment case can pause new uploads while preserving existing
+          access and export until the agreed album expiry.
         </p>
         <p>
           For access, deletion, safety or billing questions, contact{" "}
