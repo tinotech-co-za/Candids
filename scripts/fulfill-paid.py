@@ -59,8 +59,8 @@ def accepted_event(value, now):
     event_expiry = instant(event["expiresAt"])
     if not now < event_expiry <= now + 30 * 86400 or event["origin"] != ORIGIN:
         raise ValueError("Use the fixed app origin and an event expiry within30 days")
-    if terms != {"version": "candids-managed-v1", "acceptedAt": quote["acceptedAt"], "backupRetentionDays": 7}:
-        raise ValueError("Record acceptance of the managed event and seven-day backup terms")
+    if terms != {"version": "candids-managed-v1", "acceptedAt": quote["acceptedAt"], "backupRetentionDays": 7, "backupRetentionPolicy": "daily-rotation-with-failure-review"}:
+        raise ValueError("Record acceptance of the managed event, normal backup rotation and failure-review terms")
     normalized = {
         "service": value["service"],
         "quote": {key: quote[key] for key in ("invoiceId", "amountMinor", "totalMinor", "acceptedAt", "expiresAt")},
@@ -155,7 +155,7 @@ def fulfill(value, journal, verify, provision, now=None):
         atomic_json(record_path, record)
         draft = {"state": "prepared-not-sent", "to": value["quote"]["email"],
                  "subject": "Your Candids event album — " + value["quote"]["invoiceId"],
-                 "body": "Your paid Candids event album is ready. Keep the host and recovery links private.\n\nHost: " + card["hostUrl"] + "\nRecovery: " + card["recoveryUrl"] + "\n\nShare only this guest invitation: " + card["guestUrl"] + "\n\nExport before " + card["expiresAt"] + ". Live photos expire then; protected backups remain for up to seven further days under the accepted terms.\n",
+                 "body": "Your paid Candids event album is ready. Keep the host and recovery links private.\n\nHost: " + card["hostUrl"] + "\nRecovery: " + card["recoveryUrl"] + "\n\nShare only this guest invitation: " + card["guestUrl"] + "\n\nExport before " + card["expiresAt"] + ". Live photos expire then. Protected backups normally rotate out within seven days. Failed rotations are flagged for operator recovery and removal, which can take longer, as agreed in your event terms.\n",
                  "reference": reference, "albumId": result["albumId"]}
         draft.update(verificationCheckedAt=checked_at, reviewBy=review_by)
         atomic_json(journal / (reference + ".delivery.json"), draft)

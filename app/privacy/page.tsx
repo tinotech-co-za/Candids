@@ -66,9 +66,10 @@ export default function Privacy() {
         <p>
           Access stops at the recorded expiry, shown in the album. Scheduled
           cleanup removes album files and records afterward, normally within 30
-          minutes for the pilot. Protected backups use a seven-day retention
-          rotation, as agreed in the event terms, so deleted photos can remain
-          in those backups during that rotation. Hosts should download their
+          minutes for the pilot. Protected backups normally rotate out within
+          seven days, as agreed in the event terms. If a scheduled cleanup fails,
+          Tinotech must review and remove overdue backups; removal can take
+          longer. Deleted photos can remain in backups until that removal. Hosts should download their
           album before expiry. Copies already downloaded or photographed by a
           participant cannot be revoked.
         </p>

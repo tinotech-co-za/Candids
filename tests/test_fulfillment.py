@@ -27,7 +27,7 @@ class FulfillmentTests(unittest.TestCase):
                 "description": "Candids Synthetic unit event 2026-09-12", "amountMinor": 75000, "totalMinor": 75000,
                 "acceptedAt": "2026-09-12T11:00:00Z", "expiresAt": "2026-09-13T12:00:00Z"},
             "event": {"name": "Synthetic unit event", "eventDate": "2026-09-12", "expiresAt": "2026-09-14T12:00:00Z", "origin": fulfillment.ORIGIN},
-            "terms": {"version": "candids-managed-v1", "acceptedAt": "2026-09-12T11:00:00Z", "backupRetentionDays": 7}}
+            "terms": {"version": "candids-managed-v1", "acceptedAt": "2026-09-12T11:00:00Z", "backupRetentionDays": 7, "backupRetentionPolicy": "daily-rotation-with-failure-review"}}
         normalized, reference = fulfillment.accepted_event(self.value, self.now)
         self.receipt = {"schemaVersion": 1, "reference": reference, "transactionId": "123456789",
             "invoiceId": "UNIT-ONLY-001", "emailHash": fulfillment.digest("fixture@example.invalid"),

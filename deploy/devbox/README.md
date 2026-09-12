@@ -85,9 +85,9 @@ daily timer causes a short planned service interruption. Install/enable it only
 after a successful manual backup and independent restore. Data archives are
 private and contain photos and access credentials; never commit or publish them.
 
-Backups rotate within a seven-day maximum. The daily purge uses an age cutoff
+Backups normally rotate within seven days when the daily jobs succeed. The daily purge uses an age cutoff
 of five days and 23 hours, reserving the next daily interval and a scheduling
-margin instead of allowing an extra day past the stated maximum. This retains
+margin instead of adding an extra normal daily interval to the stated retention. This retains
 six recent daily recovery points when the timers run normally. A failed/stopped
 rotation requires operator recovery and retention review. Install `copy-backup-offhost.py` in
 Agentbox's `~/.local/share/tinotech-candids/ops/`, and its off-host service/timer in
@@ -102,8 +102,8 @@ After an interrupted process, its exclusive copy lock protects cleanup of only
 its dated regular partial files; completed archives are never overwritten.
 Check both backup units for failures before opening a managed event; the timers
 do not send external alerts on their own.
-Live album expiry is independent of backups; agree the additional backup retention
-in written event terms. Never describe live deletion as immediate removal from
+Live album expiry is independent of backups; agree the normal backup rotation
+and delayed-removal/failure handling in written event terms. Never describe live deletion as immediate removal from
 backups. Alert on failed backups, failing health, stale cleanup and less than
 2 GiB free disk before opening another event.
 

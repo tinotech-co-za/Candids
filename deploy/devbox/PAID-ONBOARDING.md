@@ -3,8 +3,9 @@
 Use the dedicated devbox backend and fixed public app
 `https://candids-pilot.tinomuzambi.com`. The backend enforces five active events;
 each expires within 30 days and allows 50 guests, 100 photos and 200 MB total.
-Agree scope, event expiry and the additional seven-day protected backup retention
-in writing. Check `~/.local/share/tinotech-candids/status/health.json` is healthy and
+Agree scope, event expiry and the normal seven-day protected backup rotation and the failure/manual-removal
+process in writing. A failed cleanup can delay removal; do not promise an
+unconditional deletion deadline. Check `~/.local/share/tinotech-candids/status/health.json` is healthy and
 fresh (under ten minutes), and review capacity before accepting another event.
 Do not sell a larger or indefinite service from these results.
 
@@ -47,7 +48,8 @@ The JSON has these fields (replace every placeholder from the real acceptance):
   "terms": {
     "version": "candids-managed-v1",
     "acceptedAt": "EXACT-QUOTE-ACCEPTANCE-ISO-TIME",
-    "backupRetentionDays": 7
+    "backupRetentionDays": 7,
+    "backupRetentionPolicy": "daily-rotation-with-failure-review"
   }
 }
 ```
@@ -94,7 +96,7 @@ operator journal is also required to recover an unsent delivery.
 A minimal backend payment ledger survives photo expiry to prevent duplicate
 fulfillment. It contains reference, provider transaction identity, request hashes
 and album identity, without a buyer address, raw capability or photo. Album photo
-retention and the agreed seven-day backup retention remain separate.
+retention and the agreed normal seven-day backup rotation and failure review remain separate.
 
 ## Later refunds, disputes and outages
 
@@ -122,3 +124,18 @@ remain available until the original expiry. Coordinate the agreed export and
 retention with the buyer through the authorized Tinotech process. Resuming a
 suspended event requires a reviewed operator change after the case is resolved;
 there is deliberately no public or unconditional resume command.
+
+
+## Backup failure and overdue removal
+
+The normal daily schedule retains six recent recovery points and removes each
+archive before seven days. The age cutoff includes the next daily interval and a
+scheduling margin. If a backup/copy/cleanup operation fails, retention may take
+longer; the health service marks the current backup failure or staleness. Inspect
+the dedicated service journals, preserve a verified recent recovery point, and
+complete the same strictly scoped archive cleanup as soon as the failure is
+resolved. Do not silently keep an old archive as a latest-success exception. If
+an old recovery point must be retained beyond the accepted rotation for a specific
+incident, agree and record that exception with the affected host and its removal
+date. Never delete unrelated archives, running data or an accepted-case journal
+as a generic cleanup. No real event is currently provisioned by these scripts.
