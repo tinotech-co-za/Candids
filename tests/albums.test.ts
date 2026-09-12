@@ -223,6 +223,48 @@ describe("managed album authorization", () => {
   });
 });
 describe("upload quotas and retention", () => {
+  it("preserves a committed photo when finalization's response is lost", async () => {
+    const f = await fixture();
+    const photo = await f.addPhoto();
+    expect(
+      await f.t.mutation(m("reconcileStoredUpload"), {
+        albumId: f.albumId,
+        actorHash: host,
+        reservationId: photo.reservation.reservationId,
+        storageId: photo.storageId,
+      }),
+    ).toEqual({ deleted: false });
+    expect(
+      await f.t.run((ctx) => ctx.db.system.get(photo.storageId)),
+    ).not.toBeNull();
+    expect((await f.t.query(q("snapshot"), f.auth)).photoCount).toBe(1);
+  });
+  it("removes an uncommitted file and releases its reservation exactly once", async () => {
+    const f = await fixture();
+    const reservation = await f.t.mutation(m("reserveUpload"), {
+      ...f.auth,
+      size: 4,
+      caption: "Failed upload",
+      requestId: "failed-request-00001",
+    });
+    const storageId = await f.t.run((ctx) =>
+      ctx.storage.store(new Blob([new Uint8Array([255, 216, 255, 217])])),
+    );
+    const args = {
+      albumId: f.albumId,
+      actorHash: host,
+      reservationId: reservation.reservationId,
+      storageId,
+    };
+    await expect(
+      f.t.mutation(m("reconcileStoredUpload"), { ...args, actorHash: guest }),
+    ).rejects.toThrow();
+    expect(await f.t.run((ctx) => ctx.db.system.get(storageId))).not.toBeNull();
+    await f.t.mutation(m("reconcileStoredUpload"), args);
+    await f.t.mutation(m("reconcileStoredUpload"), args);
+    expect(await f.t.run((ctx) => ctx.storage.get(storageId))).toBeNull();
+    expect((await f.t.query(q("snapshot"), f.auth)).photoCount).toBe(0);
+  });
   it("reserves quota atomically, rejects changed idempotency payload and releases failures only once", async () => {
     const f = await fixture();
     const args = {
