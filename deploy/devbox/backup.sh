@@ -10,6 +10,8 @@ test -d "$state/data"
 mkdir -p "$state/backups"
 exec 9>"$state/backup.lock"
 flock -n 9 || { echo 'Candids backup is already running'; exit 1; }
+# Recover interrupted archives only while holding this stack's exclusive lock.
+find "$state/backups" -maxdepth 1 -type f -regextype posix-extended -regex '.*/candids-[0-9]{8}T[0-9]{6}Z\.tar\.gz\.partial' -delete
 data_kib=$(du -sk "$state/data" | cut -f1)
 available_kib=$(df -Pk "$state" | tail -1 | awk '{print $4}')
 test "$available_kib" -gt "$((data_kib + 524288))" || { echo 'Insufficient free backup space'; exit 1; }
@@ -18,8 +20,13 @@ archive="$state/backups/candids-$(date -u +%Y%m%dT%H%M%SZ).tar.gz"
 test ! -e "$archive"
 # A stopped copy includes SQLite, local object storage, function code and secrets
 # consistently. The interruption is deliberate; never archive a live SQLite tree.
-restart() { docker compose up -d candids-convex web >/dev/null; }
+restart() {
+  rm -f -- "$archive.partial"
+  docker compose up -d candids-convex web >/dev/null
+}
 trap restart EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM HUP
 docker compose stop web candids-convex >/dev/null
 tar -czf "$archive.partial" -C "$state" data INSTANCE -C "$runtime" compose.yaml .env secrets
 gzip -t "$archive.partial"

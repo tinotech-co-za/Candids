@@ -1,11 +1,16 @@
-import { chromium } from "@playwright/test";
+import { chromium, webkit } from "@playwright/test";
 import assert from "node:assert/strict";
 import { mkdir, readFile, writeFile, chmod } from "node:fs/promises";
 import { unzipSync } from "fflate";
 const base = process.env.CANDIDS_TEST_URL || "http://127.0.0.1:3307";
 const output = process.env.CANDIDS_QA_DIR || "/tmp/tinotech-candids-private/qa";
 await mkdir(output, { recursive: true, mode: 0o700 });
-const browser = await chromium.launch({ headless: true });
+const engine = process.env.CANDIDS_TEST_BROWSER || "chromium";
+assert.ok(
+  ["chromium", "webkit"].includes(engine),
+  "Choose Chromium or WebKit.",
+);
+const browser = await { chromium, webkit }[engine].launch({ headless: true });
 const failures = [];
 const context = await browser.newContext({
   viewport: { width: 1440, height: 1000 },
@@ -105,6 +110,7 @@ try {
     ),
   );
   const results = {
+    browserEngine: engine,
     sample: {
       desktop: true,
       mobile: true,
@@ -166,10 +172,7 @@ try {
       .getByRole("heading", { name: card.name, exact: true })
       .waitFor();
     assert.equal(await guest.locator(".photo-print").count(), 0);
-    assert.equal(
-      await browserStatus(guest, `/api/photo/${photoId}`),
-      404,
-    );
+    assert.equal(await browserStatus(guest, `/api/photo/${photoId}`), 404);
     await guest.setInputFiles("#photo-file", "public/demo/flowers.jpg");
     await guest.getByText("Your photo was added.", { exact: true }).waitFor();
     assert.equal(await guest.locator(".photo-print").count(), 1);
@@ -180,10 +183,7 @@ try {
     await guest.waitForFunction(
       () => document.querySelectorAll(".photo-print").length === 2,
     );
-    assert.equal(
-      await browserStatus(guest, `/api/photo/${photoId}`),
-      200,
-    );
+    assert.equal(await browserStatus(guest, `/api/photo/${photoId}`), 200);
     const exported = host.waitForEvent("download");
     await host
       .getByRole("button", { name: "Download album ZIP", exact: true })
@@ -210,10 +210,7 @@ try {
         exact: true,
       })
       .waitFor();
-    assert.equal(
-      await browserStatus(host, "/api/album"),
-      403,
-    );
+    assert.equal(await browserStatus(host, "/api/album"), 403);
     const recoveryDownload = restored.waitForEvent("download");
     await restored
       .getByRole("button", {
@@ -232,10 +229,7 @@ try {
     await restored
       .getByRole("button", { name: "Blocked", exact: true })
       .waitFor();
-    assert.equal(
-      await browserStatus(guest, `/api/photo/${photoId}`),
-      404,
-    );
+    assert.equal(await browserStatus(guest, `/api/photo/${photoId}`), 404);
     assert.equal(
       await browserStatus(guest, "/api/settings", {
         method: "POST",

@@ -74,8 +74,7 @@ HTTPS app origin. Hosted browser acceptance requires
 host/guest consent and uploads, unshared/shared files, ZIP, recovery, old-host
 revocation and blocking. Also check closed uploads, expiry/cleanup, storage
 reconciliation, and restore a backup into a separate isolated backend before
-accepting a paid event. Actual mobile Safari/device upload remains a separate
-human acceptance gate.
+accepting a paid event. Real WebKit engine file selection and the full lifecycle have passed public HTTPS acceptance. Physical iPhone/iPad Safari testing remains separate; do not describe engine coverage as physical-device testing.
 
 ## Backups and recovery
 
@@ -115,3 +114,42 @@ and a reviewed new digest; do not run a blanket Docker prune.
 References: [official self-hosting](https://docs.convex.dev/self-hosting),
 [Docker deployment guide](https://github.com/get-convex/convex-backend/tree/main/self-hosted),
 and [upgrade/export guidance](https://github.com/get-convex/convex-backend/blob/main/self-hosted/advanced/upgrading.md).
+
+
+## Managed readiness and automatic status
+
+The backend enforces the aggregate five-event cap atomically for every provision
+path. Real synthetic acceptance exercised 60 concurrent guest attempts (50
+admitted), 100 simultaneous bounded photo reservations (200 MB total), duplicate
+requests, cancellations and the 20-photo guest quota. Chromium and WebKit each
+exported 100 valid 2 MB JPEG files through the public app, with all ZIP entries,
+manifest counts and SHA256 hashes verified. The large fixture uses valid JPEG
+metadata padding; physical mobile device memory, camera capture and HEIC behavior
+are not implied by desktop engine tests.
+
+Install `health-probe.py` as root-owned `/opt/tinotech-candids/health-probe.py` and
+`health-monitor.py` under Agentbox's protected `~/.local/share/tinotech-candids/ops`.
+Install the health service/timer in `~/.config/systemd/user/`, run the service once
+and enable the timer. Every five minutes it checks public HTTPS/demo and the
+unauthenticated private API guard, the two container health states, free disk,
+the five-event limit, cleanup freshness/overdue expiry, backup timers/service
+results and local/off-host backup freshness. The off-host checksum is rechecked.
+Each run has CPU/memory/time bounds and atomically updates the private
+`~/.local/share/tinotech-candids/status/health.json`; failed reads preserve the last
+successful timestamp and mark the current status failed. No album names, buyer
+addresses, capabilities or credentials are emitted. No external message is sent.
+
+Inspect `systemctl --user status tinotech-candids-health.service` and the private
+status file before activation. `ok:true` older than ten minutes is stale; check
+Agentbox/timer availability. Failed backup, cleanup older than 70 minutes, an
+expired album overdue 45 minutes, unhealthy containers or less than 2 GiB free
+space blocks new managed onboarding until reviewed. A planned backup interruption
+can briefly fail a probe; the next run must recover. Health probes do not mutate
+customer data or automatically restart unrelated services. On backup tar failure
+or TERM, the backup trap removes its partial archive and restarts this stack.
+After an abrupt kill/reboot, the next locked backup removes only its dated regular
+partial files; the failed service is visible to the health monitor. Inspect and
+restart only this stack if the host interrupted its restart trap.
+
+For accepted payment binding, durable provisioning, private delivery drafts and
+later refund/dispute handling, follow [PAID-ONBOARDING.md](PAID-ONBOARDING.md).

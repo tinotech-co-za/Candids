@@ -3,6 +3,21 @@ import { v } from "convex/values";
 import { authTables } from "@convex-dev/auth/server";
 
 const applicationTables = {
+  albumFulfillments: defineTable({
+    reference: v.string(),
+    transactionId: v.string(),
+    requestDigest: v.string(),
+    provisionDigest: v.string(),
+    albumId: v.id("albums"),
+    createdAt: v.number(),
+  })
+    .index("by_reference", ["reference"])
+    .index("by_transaction", ["transactionId"]),
+  operationalState: defineTable({
+    kind: v.literal("cleanup"),
+    completedAt: v.number(),
+    expiredAlbums: v.number(),
+  }).index("by_kind", ["kind"]),
   albums: defineTable({
     name: v.string(),
     eventDate: v.string(),
@@ -13,6 +28,7 @@ const applicationTables = {
     createdAt: v.number(),
     shared: v.boolean(),
     uploadsOpen: v.boolean(),
+    uploadsSuspended: v.optional(v.boolean()),
     photoCount: v.number(),
     byteCount: v.number(),
     memberCount: v.number(),
