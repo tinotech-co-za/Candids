@@ -24,5 +24,34 @@
   "unitTests": 16,
   "typecheck": "passed",
   "lint": "passed",
-  "deployment": "Public demo only, hosted private albums gated"
+  "deployment": "Public demo only, hosted private albums gated",
+  "public": {
+    "url": "https://candids-tinotech.vercel.app",
+    "sourceCommit": "4ed9dc9",
+    "deploymentId": "dpl_9qGFuVgXEFE7DgyHxyACVXscUvz8",
+    "browser": {
+      "sample": {
+        "desktop": true,
+        "mobile": true,
+        "hostGuestVisibility": true,
+        "photoDialog": true,
+        "zipEntries": 7,
+        "tabOnlyUpload": true
+      },
+      "real": null,
+      "browserErrors": 0
+    },
+    "landingStatus": 200,
+    "demoStatus": 200,
+    "privateAlbumStatus": 503,
+    "privateExportStatus": 503,
+    "openGraph": {
+      "url": "https://candids-tinotech.vercel.app/og.png",
+      "status": 200,
+      "mime": "image/png",
+      "width": 1200,
+      "height": 630
+    },
+    "githubCI": "https://github.com/tinotech-co-za/Candids/actions/runs/34684432022"
+  }
 }
