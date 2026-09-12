@@ -172,7 +172,9 @@ def clients(operator_path, service_path):
 
     def verify(reference):
         environment = {key: os.environ[key] for key in ("PATH", "HOME", "LANG") if key in os.environ}
-        result = subprocess.run(["node", str(CHECKOUT / "scripts/verify-service-receipt.mjs"), reference, str(service_path)],
+        # Scope the Agentbox dual-stack connection fix to this read-only helper.
+        result = subprocess.run(["node", "--dns-result-order=ipv4first", "--no-network-family-autoselection",
+                                 str(CHECKOUT / "scripts/verify-service-receipt.mjs"), reference, str(service_path)],
                                 capture_output=True, text=True, timeout=65, check=True, cwd=CHECKOUT, env=environment)
         return json.loads(result.stdout)
 

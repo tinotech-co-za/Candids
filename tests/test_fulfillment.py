@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 spec = importlib.util.spec_from_file_location("fulfillment", Path(__file__).parents[1] / "scripts/fulfill-paid.py")
 fulfillment = importlib.util.module_from_spec(spec)
@@ -127,6 +128,28 @@ class FulfillmentTests(unittest.TestCase):
         result = postcare.recheck(path, lambda _: self.receipt, backend, "refund-request")
         self.assertEqual(calls, ["eventStatus", "suspendUploads"])
         self.assertEqual(result["action"], "uploads-suspended")
+
+    def test_verifier_connection_flags_preserve_private_process_and_deadline(self):
+        operator, service = self.journal / "operator.env", self.journal / "service.env"
+        operator.write_text("CONVEX_SELF_HOSTED_URL=http://127.0.0.1:43210\nCONVEX_SELF_HOSTED_ADMIN_KEY=unit-only\n")
+        service.write_text("TINOTECH_PAYMENTS_TOKEN=unit-only\n")
+        operator.chmod(0o600)
+        service.chmod(0o600)
+        reference = self.receipt["reference"]
+        with patch.dict(fulfillment.os.environ, {"NODE_OPTIONS": "--insecure-http-parser", "PRIVATE_UNRELATED": "unit-only"}), \
+                patch.object(fulfillment.subprocess, "run") as run:
+            run.return_value.stdout = json.dumps(self.receipt)
+            verify, _ = fulfillment.clients(operator, service)
+            self.assertEqual(verify(reference), self.receipt)
+        run.assert_called_once()
+        args, kwargs = run.call_args
+        self.assertEqual(args[0], ["node", "--dns-result-order=ipv4first", "--no-network-family-autoselection",
+                                 str(fulfillment.CHECKOUT / "scripts/verify-service-receipt.mjs"), reference, str(service)])
+        self.assertEqual(kwargs["timeout"], 65)
+        self.assertTrue(kwargs["capture_output"])
+        self.assertTrue(kwargs["check"])
+        self.assertEqual(kwargs["cwd"], fulfillment.CHECKOUT)
+        self.assertLessEqual(set(kwargs["env"]), {"PATH", "HOME", "LANG"})
 
 
 if __name__ == "__main__":
