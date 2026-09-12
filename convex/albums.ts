@@ -367,6 +367,7 @@ export const finishUpload = internalMutation({
       item.status !== "reserved" ||
       item.expiresAt <= Date.now() ||
       !storage ||
+      storage._creationTime < item._creationTime ||
       storage.size !== item.size ||
       storage.contentType !== "image/jpeg"
     )
@@ -406,6 +407,35 @@ async function release(ctx: MutationCtx, id: GenericId<"albumUploads">) {
     });
   await ctx.db.patch(item._id, { status: "failed" });
 }
+
+// An action can lose the response after finishUpload has committed. Recheck
+// ownership in the same transaction as deletion; never delete blindly in catch.
+export const reconcileStoredUpload = internalMutation({
+  args: {
+    albumId: v.id("albums"),
+    actorHash: v.string(),
+    reservationId: v.id("albumUploads"),
+    storageId: v.id("_storage"),
+  },
+  handler: async (ctx, args) => {
+    const attached = await ctx.db
+      .query("albumPhotos")
+      .withIndex("by_storage", (q) => q.eq("storageId", args.storageId))
+      .first();
+    if (attached) return { deleted: false };
+    const reservation = await ctx.db.get(args.reservationId);
+    if (
+      reservation &&
+      (reservation.albumId !== args.albumId ||
+        reservation.actorHash !== args.actorHash)
+    )
+      throw new Error("Upload unavailable");
+    if (await ctx.db.system.get(args.storageId))
+      await ctx.storage.delete(args.storageId);
+    if (reservation) await release(ctx, reservation._id);
+    return { deleted: true };
+  },
+});
 
 export const cancelUpload = mutation({
   args: { ...authArgs, reservationId: v.id("albumUploads") },

@@ -5,7 +5,8 @@
   "installCommand": "npm ci",
   "git": {
     "deploymentEnabled": {
-      "codex/candids-netlify-free": false
+      "codex/candids-netlify-free": false,
+      "codex/candids-storage-reliability": false
     }
   }
 }

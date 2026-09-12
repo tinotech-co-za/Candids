@@ -44,9 +44,15 @@ http.route({
   handler: httpAction(async (ctx, request) => {
     let stage = "authorize";
     let stored: Awaited<ReturnType<typeof ctx.storage.store>> | null = null;
+    let upload: {
+      albumId: string;
+      actorHash: string;
+      reservationId: string;
+    } | null = null;
     try {
       const args = credentials(request);
       const reservationId = request.headers.get("x-reservation-id") || "";
+      upload = { ...args, reservationId };
       const reservation = await ctx.runQuery(
         makeFunctionReference<"query">("albums:uploadDetails"),
         { ...args, reservationId },
@@ -101,7 +107,18 @@ http.route({
       return Response.json({ photoId }, { headers });
     } catch {
       console.warn("Candids upload failed", stage);
-      if (stored) await ctx.storage.delete(stored);
+      if (stored && upload) {
+        try {
+          await ctx.runMutation(
+            makeFunctionReference<"mutation">("albums:reconcileStoredUpload"),
+            { ...upload, storageId: stored },
+          );
+        } catch {
+          // Keep an uncertain file for the scoped maintenance inventory. A
+          // retry can recover a committed reservation without losing its photo.
+          console.warn("Candids upload reconciliation deferred");
+        }
+      }
       return new Response("Upload unavailable", { status: 400, headers });
     }
   }),
