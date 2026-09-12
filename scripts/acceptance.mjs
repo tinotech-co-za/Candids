@@ -13,6 +13,13 @@ const context = await browser.newContext({
 });
 const page = await context.newPage();
 page.on("pageerror", () => failures.push("Page JavaScript error"));
+// Use the browser's cookie rules for production Secure cookies on loopback.
+// APIRequestContext does not send those cookies over local HTTP.
+const browserStatus = (page, path, options) =>
+  page.evaluate(
+    async ({ path, options }) => (await fetch(path, options)).status,
+    { path, options },
+  );
 try {
   await page.goto(base);
   await page.getByRole("heading", { level: 1 }).waitFor();
@@ -160,7 +167,7 @@ try {
       .waitFor();
     assert.equal(await guest.locator(".photo-print").count(), 0);
     assert.equal(
-      (await guestContext.request.get(`${base}/api/photo/${photoId}`)).status(),
+      await browserStatus(guest, `/api/photo/${photoId}`),
       404,
     );
     await guest.setInputFiles("#photo-file", "public/demo/flowers.jpg");
@@ -174,7 +181,7 @@ try {
       () => document.querySelectorAll(".photo-print").length === 2,
     );
     assert.equal(
-      (await guestContext.request.get(`${base}/api/photo/${photoId}`)).status(),
+      await browserStatus(guest, `/api/photo/${photoId}`),
       200,
     );
     const exported = host.waitForEvent("download");
@@ -204,7 +211,7 @@ try {
       })
       .waitFor();
     assert.equal(
-      (await context.request.get(`${base}/api/album`)).status(),
+      await browserStatus(host, "/api/album"),
       403,
     );
     const recoveryDownload = restored.waitForEvent("download");
@@ -226,14 +233,17 @@ try {
       .getByRole("button", { name: "Blocked", exact: true })
       .waitFor();
     assert.equal(
-      (await guestContext.request.get(`${base}/api/photo/${photoId}`)).status(),
+      await browserStatus(guest, `/api/photo/${photoId}`),
       404,
     );
-    const forbidden = await guestContext.request.post(`${base}/api/settings`, {
-      headers: { origin: base },
-      data: { action: "share", value: false },
-    });
-    assert.equal(forbidden.status(), 403);
+    assert.equal(
+      await browserStatus(guest, "/api/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "share", value: false }),
+      }),
+      403,
+    );
     results.real = {
       hostAccess: true,
       guestConsent: true,
