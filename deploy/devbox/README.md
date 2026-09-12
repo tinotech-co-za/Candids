@@ -90,11 +90,11 @@ Backups are retained locally for seven days. Install `copy-backup-offhost.py` in
 Agentbox's `~/.local/share/tinotech-candids/ops/`, and its off-host service/timer in
 `~/.config/systemd/user/`. Run the service once, verify success, then enable its
 timer under the lingering `agent` user. It copies the latest dedicated devbox
-archive at04:00UTC, checks freshness, capacity, gzip and SHA256, and keeps protected
+archive at 04:00 UTC, checks freshness, capacity, gzip and SHA256, and keeps protected
 Agentbox copies in `~/.local/share/tinotech-candids/backups` for seven days. Its
 only SSH target is `devbox`, with fixed dedicated archive paths and validated
 dated filenames. It fails on stale backups, mismatched existing files and an
-archive over2GiB rather than silently accepting an incomplete recovery point.
+archive over 2 GiB rather than silently accepting an incomplete recovery point.
 Check both backup units for failures before opening a managed event; the timers
 do not send external alerts on their own.
 Live album expiry is independent of backups; agree the additional backup retention
