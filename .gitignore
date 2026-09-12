@@ -124,3 +124,5 @@ out
 
 # Local Netlify artifacts and project linkage
 .netlify/
+__pycache__/
+*.pyc
